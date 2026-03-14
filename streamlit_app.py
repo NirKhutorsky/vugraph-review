@@ -437,16 +437,21 @@ def main() -> None:
 
     st.session_state.page_idx = max(0, min(st.session_state.page_idx, len(filtered) - 1))
 
+    # Sync jump input with current page before rendering the widget
+    st.session_state.jump_input = st.session_state.page_idx + 1
+
     # Navigation: Previous / Next / Jump
     col_prev, col_next, col_info, col_jump = st.columns([1, 1, 2, 2])
 
     with col_prev:
         if st.button("⬅️ Previous") and st.session_state.page_idx > 0:
             st.session_state.page_idx -= 1
+            st.session_state.jump_input = st.session_state.page_idx + 1
             st.rerun()
     with col_next:
         if st.button("➡️ Next") and st.session_state.page_idx < len(filtered) - 1:
             st.session_state.page_idx += 1
+            st.session_state.jump_input = st.session_state.page_idx + 1
             st.rerun()
     with col_info:
         st.markdown(f"**{st.session_state.page_idx + 1} of {len(filtered)}**")
@@ -455,7 +460,6 @@ def main() -> None:
             "Go to #",
             min_value=1,
             max_value=len(filtered),
-            value=st.session_state.page_idx + 1,
             step=1,
             key="jump_input",
             on_change=_handle_jump,
