@@ -431,16 +431,29 @@ def main() -> None:
 
     st.session_state.page_idx = max(0, min(st.session_state.page_idx, len(filtered) - 1))
 
-    col1, col2, col3, col4 = st.columns([1, 1, 2, 2])
-    with col1:
+    # Jump to specific candidate number
+    col_jump, col_prev, col_next, col_info = st.columns([2, 1, 1, 2])
+    with col_jump:
+        jump_to = st.number_input(
+            "Go to #",
+            min_value=1,
+            max_value=len(filtered),
+            value=st.session_state.page_idx + 1,
+            step=1,
+            key="jump_input",
+        )
+        if jump_to - 1 != st.session_state.page_idx:
+            st.session_state.page_idx = jump_to - 1
+            st.rerun()
+    with col_prev:
         if st.button("⬅️ Previous") and st.session_state.page_idx > 0:
             st.session_state.page_idx -= 1
             st.rerun()
-    with col2:
+    with col_next:
         if st.button("➡️ Next") and st.session_state.page_idx < len(filtered) - 1:
             st.session_state.page_idx += 1
             st.rerun()
-    with col3:
+    with col_info:
         st.markdown(f"**{st.session_state.page_idx + 1} of {len(filtered)}**")
 
     st.divider()
