@@ -319,6 +319,12 @@ def export_accepted(candidates: list[dict], review_state: dict) -> list[dict]:
     return [c for c in candidates if review_state.get(c["id"], {}).get("status") == "accepted"]
 
 
+def _handle_jump(max_len: int) -> None:
+    """Callback for the jump-to number input. Updates page_idx from widget state."""
+    val = st.session_state.get("jump_input", 1)
+    st.session_state.page_idx = max(0, min(val - 1, max_len - 1))
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -431,20 +437,9 @@ def main() -> None:
 
     st.session_state.page_idx = max(0, min(st.session_state.page_idx, len(filtered) - 1))
 
-    # Jump to specific candidate number
-    col_jump, col_prev, col_next, col_info = st.columns([2, 1, 1, 2])
-    with col_jump:
-        jump_to = st.number_input(
-            "Go to #",
-            min_value=1,
-            max_value=len(filtered),
-            value=st.session_state.page_idx + 1,
-            step=1,
-            key="jump_input",
-        )
-        if jump_to - 1 != st.session_state.page_idx:
-            st.session_state.page_idx = jump_to - 1
-            st.rerun()
+    # Navigation: Previous / Next / Jump
+    col_prev, col_next, col_info, col_jump = st.columns([1, 1, 2, 2])
+
     with col_prev:
         if st.button("⬅️ Previous") and st.session_state.page_idx > 0:
             st.session_state.page_idx -= 1
@@ -455,6 +450,17 @@ def main() -> None:
             st.rerun()
     with col_info:
         st.markdown(f"**{st.session_state.page_idx + 1} of {len(filtered)}**")
+    with col_jump:
+        jump_to = st.number_input(
+            "Go to #",
+            min_value=1,
+            max_value=len(filtered),
+            value=st.session_state.page_idx + 1,
+            step=1,
+            key="jump_input",
+            on_change=_handle_jump,
+            args=(len(filtered),),
+        )
 
     st.divider()
 
